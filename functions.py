@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 from pandas import DataFrame
@@ -9,6 +10,7 @@ from Bio.Alphabet import IUPAC
 import HTSeq
 
 class NotSuchAMetricException(Exception): pass
+class NoExtensionException(Exception): pass
 
 def get_windows(filepath, filetype, window_length):
     """Return an generator over intervals from the file including extension
@@ -259,3 +261,16 @@ def create_grid(figsize=(8, 12), strip=False, height_ratios=(1, 4), width_ratios
     fig.line_axes = pl.subplot(gs[0, 0:], sharex=fig.array_axes)
     fig.gs = gs
     return fig
+
+def infer_extension(path):
+    """Infer extension of a file based on its path
+
+    :param path: @todo
+    :returns: @todo
+
+    """
+    filename, extension = os.path.splitext(path)
+    if extension == '':
+        raise NoExtensionException("File has no extension, please provide file type manually")
+    else:
+        return extension[1:]
