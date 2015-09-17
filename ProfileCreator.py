@@ -44,7 +44,7 @@ class ProfileCreator():
             self.add_signals(signals)
         self.profiles = {}
 
-    def create_profiles(self, update=False, delete=False):
+    def create_profiles(self, update=False, delete=False, normalize_to_gene=True, normalize_to_library=False):
         """Prepare array of profiles for each each signal. For each window a pseudocount
         is added.
         """
@@ -61,7 +61,14 @@ class ProfileCreator():
                 for window in self.windows:
                     profile_name = self.__construct_profile_name(signal, window)
                     if profile_name not in self.profiles:
-                        self.profiles[profile_name] = Profile(signal, window)
+                        prof = Profile(signal, window)
+                        if normalize_to_gene:
+                            sys.stderr.write(" - normalizing to gene\n")
+                            prof.normalize_to_gene()
+                        if normalize_to_library:
+                            sys.stderr.write(" - normalizing to library\n")
+                            prof.normalize_to_library()
+                        self.profiles[profile_name] = prof
                     else:
                         raise Exception("Profile %s already in dictionary! You may have duplicated something." % profile_name)
         elif (len(self.profiles.keys()) != 0 and update):
@@ -74,7 +81,14 @@ class ProfileCreator():
                 for window in self.windows:
                     profile_name = self.__construct_profile_name(signal, window)
                     if profile_name not in self.profiles:
-                        self.profiles[profile_name] = Profile(signal, window)
+                        prof = Profile(signal, window)
+                        if normalize_to_gene:
+                            sys.stderr.write(" - normalizing to gene\n")
+                            prof.normalize_to_gene()
+                        if normalize_to_library:
+                            sys.stderr.write(" - normalizing to library\n")
+                            prof.normalize_to_library()
+                        self.profiles[profile_name] = prof
                     else:
                         sys.stderr.write("Profile %s already in dictionary! Skipping.\n" % profile_name)
         elif (len(self.profiles.keys()) != 0 and not update) or (len(self.profiles.keys()) != 0 and not delete):
@@ -89,12 +103,16 @@ class ProfileCreator():
                 for window in self.windows:
                     profile_name = self.__construct_profile_name(signal, window)
                     if profile_name not in self.profiles:
-                        self.profiles[profile_name] = Profile(signal, window)
+                        prof = Profile(signal, window)
+                        if normalize_to_gene:
+                            sys.stderr.write(" - normalizing to gene\n")
+                            prof.normalize_to_gene()
+                        if normalize_to_library:
+                            sys.stderr.write(" - normalizing to library\n")
+                            prof.normalize_to_library()
+                        self.profiles[profile_name] = prof
                     else:
                         raise Exception("Profile %s already in dictionary! You may have duplicated something." % profile_name)
-
-
-
 
     def add_windows(self, windows):
         """Add a windows to ProfileCreator using
