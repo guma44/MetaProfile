@@ -2,7 +2,7 @@ import os
 import sys
 import pylab as pl
 from numpy import fromiter, asarray, nan_to_num
-from utils import plot_line_profile, plot_heatmap_profile
+from .utils import plot_line_profile, plot_heatmap_profile
 
 class WrongFiletypeException(Exception): pass
 class NoSuchAFileException(Exception): pass

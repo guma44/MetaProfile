@@ -9,9 +9,9 @@ from Bio import SeqIO, Seq, motifs
 from Bio.Alphabet import IUPAC
 import HTSeq
 
-from Signal import Signal
-from Profile import Profile
-from Window import Window
+from .Signal import Signal
+from .Profile import Profile
+from .Window import Window
 
 
 class WrongFiletypeException(Exception): pass
@@ -21,7 +21,21 @@ class NoProfilesException(Exception): pass
 class NotSuchAProfileException(Exception): pass
 class NotSuchAProfileTypeException(Exception): pass
 
-class ProfileCreator():
+
+def from_list(signals_list, windows_list):
+    """Create Profiler from a list. This method of creating a Profiler has an
+    advantage of making use of multiprocessing.
+
+    :param signals_list: list -- a list of signals to take into account (name, filepath, kwargs_dictionary)
+    :param windows_list: list -- a list of windows to take into account (name, filepath, kwargs_dictionary)
+    :returns: Profiler
+
+    """
+    pass
+
+
+
+class MetaProfiler():
 
     """A class that handles creation of the genomic profile"""
 
