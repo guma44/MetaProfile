@@ -1,5 +1,6 @@
 import os
 import sys
+import multiprocessing
 import numpy as np
 from pandas import DataFrame
 import matplotlib.gridspec as gridspec
@@ -22,17 +23,24 @@ class NotSuchAProfileException(Exception): pass
 class NotSuchAProfileTypeException(Exception): pass
 
 
-def from_list(signals_list, windows_list):
+def get_profiler(signals_list, windows_list):
     """Create Profiler from a list. This method of creating a Profiler has an
     advantage of making use of multiprocessing.
 
-    :param signals_list: list -- a list of signals to take into account (name, filepath, kwargs_dictionary)
-    :param windows_list: list -- a list of windows to take into account (name, filepath, kwargs_dictionary)
+    :param signals_list: list of dicts -- a list with dictionaries of signals to take into account [{'argname': arg_value}]
+    :param windows_list: list of dicts -- a list with dictionaries of windows to take into account [{'argname': arg_value}]
     :returns: Profiler
 
+    Example:
+    >>> from MetaPy import MetaProfiler
+    >>> signals_list = ({'name': "input1",
+    >>>                  'filepath': "/path/to/input1.bed"},
+    >>>                 {'name': "input2",
+    >>>                  'filepath': "/path/to/input2.bed"})
     """
-    pass
-
+    signals = []
+    for sig_name, sig_filepath, sig_kwargs in signals_list:
+        pass
 
 
 class MetaProfiler():
