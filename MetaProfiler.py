@@ -10,7 +10,7 @@ from Bio import SeqIO, Seq, motifs
 from Bio.Alphabet import IUPAC
 import HTSeq
 
-from .Signal import Signal
+from .Signal import Signal, get_signals
 from .Profile import Profile
 from .Window import Window
 
@@ -23,7 +23,7 @@ class NotSuchAProfileException(Exception): pass
 class NotSuchAProfileTypeException(Exception): pass
 
 
-def get_profiler(signals_list, windows_list):
+def get_profiler(signals_list, windows_list, **kwargs):
     """Create Profiler from a list. This method of creating a Profiler has an
     advantage of making use of multiprocessing.
 
@@ -38,10 +38,16 @@ def get_profiler(signals_list, windows_list):
     >>>                 {'name': "input2",
     >>>                  'filepath': "/path/to/input2.bed"})
     """
-    signals = []
-    for sig_name, sig_filepath, sig_kwargs in signals_list:
-        pass
+    sys.stderr.write("Generating Signals...\n")
+    signals = get_signals(signals_list)
+    sys.stderr.write("Generating Windows...\n")
+    windows = []
+    for params in windows_list:
+        windows.append(Window(**params))
 
+    profiler = MetaProfiler(signals=signals, windows=windows)
+    profiler.create_profiles(**kwargs)
+    return profiler
 
 class MetaProfiler():
 

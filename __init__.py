@@ -1,5 +1,5 @@
-from Signal import Signal
+from Signal import Signal, get_signals
 from Profile import Profile
 from Window import Window
-from MetaProfiler import MetaProfiler
+from MetaProfiler import MetaProfiler, get_profiler
 import utils as utils

@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 from sys import stderr
 import HTSeq
 from .utils import infer_extension
@@ -7,6 +8,9 @@ class WrongFiletypeException(Exception): pass
 class NotSuchAFileException(Exception): pass
 class NoSignalsException(Exception): pass
 
+
+def helper_multiprocess(kwargs):
+    return Signal.get_signal(**kwargs)
 
 def get_signals(signals_list, number_of_processes=10):
     """Get Signals based on the provided list. Use multiprocessing.
@@ -24,8 +28,8 @@ def get_signals(signals_list, number_of_processes=10):
         >>> signals = Signal.get_signals(signals_list)
 
     """
-    pool = multiprocessing.Pool(3)
-    results = pool.map(helper_func, job_kwargs)
+    pool = multiprocessing.Pool(number_of_processes)
+    results = pool.map(helper_multiprocess, signals_list)
     pool.close()
     pool.join()
     return results
