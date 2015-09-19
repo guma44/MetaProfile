@@ -23,7 +23,7 @@ class NotSuchAProfileException(Exception): pass
 class NotSuchAProfileTypeException(Exception): pass
 
 
-def get_profiler(signals_list, windows_list, **kwargs):
+def get_profiler(signals_list, windows_list, parallel=True, **kwargs):
     """Create Profiler from a list. This method of creating a Profiler has an
     advantage of making use of multiprocessing.
 
@@ -39,7 +39,7 @@ def get_profiler(signals_list, windows_list, **kwargs):
     >>>                  'filepath': "/path/to/input2.bed"})
     """
     sys.stderr.write("Generating Signals...\n")
-    signals = get_signals(signals_list)
+    signals = get_signals(signals_list, parallel=parallel)
     sys.stderr.write("Generating Windows...\n")
     windows = []
     for params in windows_list:

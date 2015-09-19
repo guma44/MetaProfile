@@ -9,10 +9,7 @@ class NotSuchAFileException(Exception): pass
 class NoSignalsException(Exception): pass
 
 
-def helper_multiprocess(kwargs):
-    return Signal.get_signal(**kwargs)
-
-def get_signals(signals_list, number_of_processes=10):
+def get_signals(signals_list, parallel=True):
     """Get Signals based on the provided list. Use multiprocessing.
 
     :param signals_list: list of dicts -- a list with dictionaries of signals to take into account [{'argname': arg_value}]
@@ -28,11 +25,32 @@ def get_signals(signals_list, number_of_processes=10):
         >>> signals = Signal.get_signals(signals_list)
 
     """
-    pool = multiprocessing.Pool(number_of_processes)
-    results = pool.map(helper_multiprocess, signals_list)
-    pool.close()
-    pool.join()
-    return results
+    if parallel:
+        number_of_processes = 4
+        pool = multiprocessing.Pool(number_of_processes)
+        results = pool.map(get_signal, signals_list)
+        pool.close()
+        pool.join()
+        return results
+    else:
+        results = []
+        for params in signals_list:
+            results.append(Signal(**params))
+        return results
+
+def get_signal(kwargs):
+    """
+    Create genomic Signal and return it. Can be used in threads and multiprocessing.
+
+    :param name: str -- name of the signal
+    :param filepath: str -- path to file with signals
+    :param filetype: str -- type of the file (can be one of the following: BED, GTF, GFF, BAM, SAM or OTHER),
+                            if the OTHER is specified a func parameter has to be provided
+    :param stranded: bool -- specify whether the input is stranded
+    :param func: function -- iterator function that takes filepath as argument and in each iteration it returns an
+                             object that has iv attribute that is an HTSeq.GenomicInterval
+    """
+    return Signal(**kwargs)
 
 class Signal(object):
 
@@ -66,21 +84,6 @@ class Signal(object):
         self.filetype = filetype
         self.__create_genomic_signals(stranded=stranded, func=func)
 
-    @classmethod
-    def get_signal(cls, name, filepath, filetype=None, stranded=True, func=None):
-        """
-        Create genomic Signal and return it. Can be used in threads and multiprocessing.
-
-        :param name: str -- name of the signal
-        :param filepath: str -- path to file with signals
-        :param filetype: str -- type of the file (can be one of the following: BED, GTF, GFF, BAM, SAM or OTHER),
-                                if the OTHER is specified a func parameter has to be provided
-        :param stranded: bool -- specify whether the input is stranded
-        :param func: function -- iterator function that takes filepath as argument and in each iteration it returns an
-                                 object that has iv attribute that is an HTSeq.GenomicInterval
-        """
-        signal = cls(name=name, filepath=filepath, filetype=filetype, stranded=stranded, func=func)
-        return signal
 
     def __create_genomic_signals(self, stranded=True, func=None):
         """Prepares coverage as a HTSeq.GenomicArray
