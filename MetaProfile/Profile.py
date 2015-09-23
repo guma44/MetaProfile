@@ -44,10 +44,12 @@ class Profile(object):
             except IndexError:
                 sys.stderr.write("Wrong window: %s\n" % str(window))
                 continue
-            if window.strand == "+":
+            if window.strand == "+" and self.signal.stranded:
                 profile.append(wincvg + self.window.pseudocount)
-            else:
+            elif window.strand == "-" and self.signal.stranded:
                 profile.append(wincvg[::-1] + self.window.pseudocount)
+            else:
+                profile.append(wincvg + self.window.pseudocount)
 
         self.profile_raw = asarray(profile)
 
