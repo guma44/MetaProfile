@@ -40,7 +40,7 @@ class Profile(object):
             window_lengths.add(window.length)
             assert len(window_lengths) == 1, "Windows has at least two different lengths"
             try:
-                wincvg = fromiter(self.signal.coverage[window], dtype='i', count=window.length)
+                wincvg = fromiter(self.signal.coverage[window], dtype='d', count=window.length)
             except IndexError:
                 sys.stderr.write("Wrong window: %s\n" % str(window))
                 continue

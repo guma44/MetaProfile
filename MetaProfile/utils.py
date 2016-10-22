@@ -58,11 +58,14 @@ def plot_line_profile(profile, x=None, ax=None, smooth_by=1, **kwargs):
         ax.plot(x, smoothed, **kwargs)
         return ax
     elif profile.ndim == 2:
-        if x is None:
-            x = range(-(profile.shape[1]//2), profile.shape[1]//2 + profile.shape[1]%2)
-        assert profile.shape[1] == len(x), "x vector and profile length are different"
+        # if x is None:
+        #     x = range(-(profile.shape[1]//2), profile.shape[1]//2 + profile.shape[1]%2)
+        # assert profile.shape[1] == len(x), "x vector and profile length are different"
         smoothed = pd.rolling_mean(profile, window=smooth_by, center=True, axis=1)
         sns.tsplot(smoothed, ax=ax, **kwargs)
+        offset = profile.shape[1]//2
+        locs, labels = pl.xticks()
+        t = pl.xticks(locs, map(lambda y: "%g" % y, locs - offset))
         return ax
     else:
         raise Exception("Input profile has wrong dimentionality")

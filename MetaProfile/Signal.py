@@ -1,8 +1,10 @@
 import os
+import pybedtools
 import multiprocessing
 from sys import stderr
 import HTSeq
 from .utils import infer_extension
+from numpy import fromiter, zeros
 
 from bx.bbi.bigwig_file import BigWigFile
 
@@ -67,7 +69,7 @@ class Signal(object):
         self.__create_genomic_signals(stranded=stranded, func=func)
 
 
-    def __create_genomic_signals(self, stranded=True, func=None):
+    def __create_genomic_signals(self, stranded=True, func=None, use_wrappers=True):
         """Prepares coverage as a HTSeq.GenomicArray
 
         :param filepath: path to file
@@ -77,9 +79,12 @@ class Signal(object):
         self.coverage = HTSeq.GenomicArray("auto", stranded=stranded, typecode="d")
         self.library_size = 0
         if self.filetype.upper() == "BED":
-            for line in HTSeq.BED_Reader(self.filepath):
-                self.coverage[line.iv] += 1
-                self.library_size += 1
+            if use_wrappers:
+                self.coverage = BedWrapper(self.filepath)
+            else:
+                for line in HTSeq.BED_Reader(self.filepath):
+                    self.coverage[line.iv] += 1
+                    self.library_size += 1
         elif self.filetype.upper() == "GFF" or self.filetype.upper() == "GTF":
             for line in HTSeq.GFF_Reader(self.filepath):
                 self.coverage[line.iv] += 1
@@ -89,13 +94,16 @@ class Signal(object):
                 self.coverage[line.iv] += 1
                 self.library_size += 1
         elif self.filetype.upper() == "BAM":
+            if use_wrappers:
+                raise NotImplementedError("Bam wrapper is not yet implemented!")
+                self.coverage = BamWrapper(self.filetype)
             for line in HTSeq.BAM_Reader(self.filepath):
                 self.coverage[line.iv] += 1
                 self.library_size += 1
         elif (self.filetype.upper() == "BG") or (self.filetype.upper() == "BEDGRAPH"):
             raise NotImplementedError("BedGraph is not yet implemented!")
         elif (self.filetype.upper() == "BW") or (self.filetype.upper() == "BIGWIG"):
-            self.coverage = BigWig(self.filepath)
+            self.coverage = BigWigWrapper(self.filepath)
         elif self.filetype.upper() == "OTHER":
             for line in func(self.filepath):
                 self.coverage[line.iv] += 1
@@ -107,7 +115,7 @@ class Signal(object):
         return "<Signal: %s>" % self.name
 
 
-class BigWig(object):
+class BigWigWrapper(object):
 
     """A wrapper for bx-python BigWig file"""
 
@@ -116,3 +124,39 @@ class BigWig(object):
 
     def __getitem__(self, iv):
         return self.bw.get_as_array(iv.chrom, iv.start, iv.end)
+
+
+class BedWrapper(object):
+
+    """Wrapper around bed file using pybedtools"""
+
+    def __init__(self, filepath):
+        """
+
+        :param filepath: @todo
+
+        """
+        self.filepath = filepath
+        self.bed = pybedtools.BedTool(self.filepath)
+        self.__prepare_bed()
+
+    def __prepare_bed(self):
+        if not self.bed._tabixed():
+            self.bed = self.bed.sort().tabix(in_place=False, force=False, is_sorted=True)
+
+    def __getitem__(self, iv):
+        coverage = zeros(iv.length, dtype='i')
+        if iv.strand == "+" or iv.strand == "-":
+            coverage = HTSeq.GenomicArray("auto", stranded=True, typecode="d")
+            for line in self.bed.tabix_intervals("%s:%i-%i[%s]" % (iv.chrom, iv.start, iv.end, iv.strand)):
+                # coverage[line.start - iv.start: iv.end - line.end] += 1
+                coverage[HTSeq.GenomicInterval(line.chrom, line.start, line.end, line.strand)] += 1
+            return fromiter(coverage[iv], dtype='i', count=iv.length)
+            # return coverage
+        else:
+            raise Exception
+            coverage = HTSeq.GenomicArray("auto", stranded=False, typecode="d")
+            for line in self.bed.tabix_intervals("%s:%i-%i" % (iv.chrom, iv.start, iv.end)):
+                coverage[HTSeq.GenomicInterval(line.chrom, line.start, line.end, line.strand)] += 1
+            return fromiter(coverage[iv], dtype='i', count=iv.length)
+
