@@ -1,15 +1,4 @@
 .PHONY: clean-pyc clean-build docs clean
-define BROWSER_PYSCRIPT
-import os, webbrowser, sys
-try:
-	from urllib import pathname2url
-except:
-	from urllib.request import pathname2url
-
-webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-endef
-export BROWSER_PYSCRIPT
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
@@ -22,6 +11,7 @@ help:
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
 	@echo "release - package and upload a release"
+	@echo "release-test - package and upload a test release"
 	@echo "dist - package"
 	@echo "install - install the package to the active Python's site-packages"
 
@@ -46,7 +36,7 @@ clean-test:
 	rm -fr htmlcov/
 
 lint:
-	flake8 MetaProfile tests
+	flake8 GEOparse tests
 
 test:
 	python setup.py test
@@ -55,22 +45,28 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source MetaProfile setup.py test
+	coverage run --source GEOparse setup.py test
 	coverage report -m
 	coverage html
-	$(BROWSER) htmlcov/index.html
+	# open htmlcov/index.html
 
 docs:
-	rm -f docs/MetaProfile.rst
+	rm -f docs/GEOparse.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ MetaProfile
+	sphinx-apidoc -o docs/ GEOparse
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
+	# open docs/_build/html/index.html
 
 release: clean
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+	python setup.py register -r pypi
+	python setup.py sdist upload -r pypi
+	python setup.py bdist_wheel upload -r pypi
+
+release-test: clean
+	python setup.py register -r pypitest
+	python setup.py sdist upload -r pypitest
+	python setup.py bdist_wheel upload -r pypitest
 
 dist: clean
 	python setup.py sdist
