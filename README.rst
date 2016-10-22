@@ -11,7 +11,7 @@ MetaProfile
 
 Python package that facilitates making gene meta-profiles.
 
-* Free software: ISC license
+* Free software: GPL license
 * Documentation: https://MetaProfile.readthedocs.org.
 
 Features
