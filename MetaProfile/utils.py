@@ -124,7 +124,7 @@ def create_grid(figsize=(8, 12), strip=False, height_ratios=(1, 4), width_ratios
         width_ratios=width_ratios,
         wspace=0.1, hspace=0.1,
         **subplot_params)
-    fig.array_axes = plt.subplot(gs[1, 0:])
+    fig.array_axes = pl.subplot(gs[1, 0:])
     fig.line_axes = pl.subplot(gs[0, 0:], sharex=fig.array_axes)
     fig.gs = gs
     return fig
