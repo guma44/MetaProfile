@@ -47,7 +47,7 @@ def create_nucleotide_frequency_from_fasta(path_to_fasta, sequence_length=None, 
     return frequency_df, motifs_obj
 
 
-def plot_line_profile(profile, x=None, ax=None, smooth_by=1, **kwargs):
+def plot_line_profile(profile, x=None, ax=None, smooth_by=1, fill_between=True, fill_color=None, **kwargs):
     if ax is None:
         fig, ax = pl.subplots()
     if profile.ndim == 1:
@@ -56,6 +56,10 @@ def plot_line_profile(profile, x=None, ax=None, smooth_by=1, **kwargs):
         assert len(profile) == len(x), "x vector and profile length are different"
         smoothed = pd.rolling_mean(profile, window=smooth_by, center=True)
         ax.plot(x, smoothed, **kwargs)
+        if fill_between:
+            if fill_color is None:
+                fill_color = kwargs.get("color", "black")
+            ax.fill_between(x, smoothed, color=fill_color, alpha=0.2)
         return ax
     elif profile.ndim == 2:
         # if x is None:
@@ -84,7 +88,36 @@ def clean_axis(ax):
     ax.get_yaxis().set_ticks([])
 
 
-def plot_heatmap_profile(df, ax=None, xlabel='', ylabel='', title='', percentiles=(1, 99), sort_by=None, **imshow_kws):
+def axes_u(ax):
+    """
+    Make axes U shaped (|_|)
+
+    Parameters
+    ----------
+    ax : matplotlib.axes
+        Axes to modify
+    """
+    ax.spines['top'].set_visible(False)
+    ax.get_yaxis().set_ticks([])
+    ax.get_xaxis().tick_bottom()
+
+def axis_bottom(ax):
+    """
+    Make axes flat shape shaped (_)
+
+    Parameters
+    ----------
+    ax : matplotlib.axes
+        Axes to modify
+    """
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.get_yaxis().set_ticks([])
+    ax.get_xaxis().set_ticks([])
+
+
+def plot_heatmap_profile(df, ax=None, xlabel='', ylabel='', title='', percentiles=(1, 99), sort_by=None, clear_axes=False, **imshow_kws):
     if ax is None:
         fig, ax = pl.subplots()
     vmin = np.percentile(df, percentiles[0])
@@ -103,7 +136,8 @@ def plot_heatmap_profile(df, ax=None, xlabel='', ylabel='', title='', percentile
     ax.yaxis.set_label_position('right')
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
-    clean_axis(ax)
+    if clear_axes:
+        clean_axis(ax)
 
     ax.set_title(title, fontsize=23)
     ax.set_ylabel(ylabel)
@@ -113,7 +147,7 @@ def plot_heatmap_profile(df, ax=None, xlabel='', ylabel='', title='', percentile
     ax.vmax = vmax
     return ax
 
-def create_grid(figsize=(8, 12), strip=False, height_ratios=(1, 4), width_ratios=(1, 4), subplot_params=None):
+def create_grid(figsize=(8, 12), strip=False, height_ratios=(1, 4), width_ratios=(1, 4), sharex=False, subplot_params=None):
     if subplot_params is None:
         subplot_params = {}
     fig = pl.figure(figsize=figsize)
@@ -122,10 +156,13 @@ def create_grid(figsize=(8, 12), strip=False, height_ratios=(1, 4), width_ratios
         len(width_ratios),
         height_ratios=height_ratios,
         width_ratios=width_ratios,
-        wspace=0.1, hspace=0.1,
+        wspace=0.0, hspace=0.0,
         **subplot_params)
     fig.array_axes = pl.subplot(gs[1, 0:])
-    fig.line_axes = pl.subplot(gs[0, 0:], sharex=fig.array_axes)
+    if sharex:
+        fig.line_axes = pl.subplot(gs[0, 0:], sharex=fig.array_axes)
+    else:
+        fig.line_axes = pl.subplot(gs[0, 0:])
     fig.gs = gs
     return fig
 

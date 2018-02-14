@@ -39,53 +39,65 @@ class Window(object):
         if type(pseudocount) != type(0):
             raise Exception("Pseudocount has to be an integer")
         self.pseudocount = pseudocount
-        self.__get_windows_iterator(func=func)
+        self.func = func
+        self.__get_windows_iterator()
+        self.number_of_windows = None
 
     def set_window_length(self, window_length):
         """Set window length
         """
         self.window_length = window_length
 
-    def __get_windows_iterator(self, func=None):
+    def __get_windows_iterator(self):
         """Return an generator over intervals from the file including extension
 
-        :param filepath: path to file
-        :param filetype: type of the file (can be bed etc.)
-        :param window_length: length of the window to add on both sides
         :returns: generator over expanded GenomicIntervals
 
         """
-        filepath = self.filepath
-        filetype = self.filetype
-        window_length = self.window_length
         class Iterable(object):
+            def __init__(self, filepath, filetype, window_length):
+                self.filepath = filepath
+                self.filetype = filetype
+                self.window_length = window_length
+
             def __iter__(self):
-                if filetype.upper() == "BED":
-                    for line in HTSeq.BED_Reader(filepath):
-                        line.iv.start -= window_length
-                        line.iv.end += window_length
+                if self.filetype.upper() == "BED":
+                    for line in HTSeq.BED_Reader(self.filepath):
+                        line.iv.start -= self.window_length
+                        line.iv.end += self.window_length
                         yield line.iv
-                elif filetype.upper() == "GFF" or filetype.upper() == "GTF":
-                    for line in HTSeq.GFF_Reader(filepath):
-                        line.iv.start -= window_length
-                        line.iv.end += window_length
+                elif self.filetype.upper() == "GFF" or self.filetype.upper() == "GTF":
+                    for line in HTSeq.GFF_Reader(self.filepath):
+                        line.iv.start -= self.window_length
+                        line.iv.end += self.window_length
                         yield line.iv
-                elif filetype.upper() == "SAM":
-                    for line in HTSeq.SAM_Reader(filepath):
-                        line.iv.start -= window_length
-                        line.iv.end += window_length
+                elif self.filetype.upper() == "SAM":
+                    for line in HTSeq.SAM_Reader(self.filepath):
+                        line.iv.start -= self.window_length
+                        line.iv.end += self.window_length
                         yield line.iv
-                elif filetype.upper() == "BAM":
-                    for line in HTSeq.BAM_Reader(filepath):
-                        line.iv.start -= window_length
-                        line.iv.end += window_length
+                elif self.filetype.upper() == "BAM":
+                    for line in HTSeq.BAM_Reader(self.filepath):
+                        line.iv.start -= self.window_length
+                        line.iv.end += self.window_length
                         yield line.iv
                 elif self.filetype.upper() == "OTHER":
-                    for line in func(self.filepath):
-                        line.iv.start -= window_length
-                        line.iv.end += window_length
+                    for line in self.func(self.filepath):
+                        line.iv.start -= self.window_length
+                        line.iv.end += self.window_length
                         yield line.iv
-        self.windows = Iterable()
+        self.windows = Iterable(self.filepath, self.filetype, self.window_length)
+
+    def get_number_of_windows(self):
+        if self.number_of_windows is not None:
+            return self.number_of_windows
+        else:
+            number_of_windows = 0
+            for i in self.windows:
+                number_of_windows += 1
+            self.number_of_windows = number_of_windows
+            return self.number_of_windows
+
 
     def __repr__(self):
         return "<Window: %s>" % self.name

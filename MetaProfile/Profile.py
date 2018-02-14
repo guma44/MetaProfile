@@ -110,6 +110,7 @@ class Profile(object):
         if ax is None:
             fig, ax = pl.subplots()
         profile_to_plot = self.get_profile_by_type(profile_type=profile_type)
+        imshow_kws["extent"] = [-self.window.window_length, self.window.window_length, 0, self.window.get_number_of_windows()]
         return plot_heatmap_profile(profile_to_plot, ax=ax, xlabel=xlabel, ylabel=ylabel, title=title,
                                     percentiles=percentiles, sort_by=sort_by, **imshow_kws)
 
